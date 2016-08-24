@@ -1,7 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="runtime-license-audit-test" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS_2="true" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="runtime_license_audit" RUN_TARGET_NAME="runtime-license-audit-test" EXPLICIT_BUILD_TARGET_NAME="all">
+  <configuration default="false" name="runtime-license-audit-test" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="./runtime-license-audit-test" WORKING_DIR="file://$USER_HOME$/.CLion2016.2/system/cmake/generated/runtime-license-audit-d7d39d13/d7d39d13/Release" PASS_PARENT_ENVS_2="true" CONFIG_NAME="Release" RUN_TARGET_PROJECT_NAME="runtime_license_audit" RUN_TARGET_NAME="auditor" EXPLICIT_BUILD_TARGET_NAME="all">
     <envs>
-      <env name="LD_AUDIT" value="libruntime-license-audit.so" />
       <env name="LD_LIBRARY_PATH" value="." />
     </envs>
     <method />
