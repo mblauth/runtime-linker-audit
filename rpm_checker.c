@@ -11,7 +11,9 @@ void readConfig() {
   }
 }
 
-void iterateRPMDB() {
+// libhawkeye
+
+void indexRPMDB() {
   printf("creating rpm transaction\n");
   rpmts transaction = rpmtsCreate();
   printf("reading config files\n");

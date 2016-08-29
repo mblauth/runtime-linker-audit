@@ -4,59 +4,73 @@
 #include <memory.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <pthread.h>
+#include <stdlib.h>
 
 #include "pipes.h"
 
 #define used __attribute__((unused))
 #define ignored __attribute__((unused))
 
-int a2lFD = -1;
-int l2aFD = -1;
+volatile int a2lFD = -1;
+volatile int l2aFD = -1;
+pthread_mutex_t * mutex;
+
+static __attribute__((constructor)) void startup() {
+  pthread_mutex_init(mutex, NULL);
+  printf("initializing audit library...");
+  pthread_mutex_lock(mutex);
+  l2aFD = open(PIPE_L2A, O_WRONLY);
+  fcntl(l2aFD, F_SETPIPE_SZ, 1024);
+  a2lFD = open(PIPE_A2L, O_RDONLY);
+  pthread_mutex_unlock(mutex);
+  printf("done\n");
+}
 
 extern used unsigned la_version(unsigned version) {
   return version;
 }
 
 extern used void la_preinit(ignored uintptr_t * cookie) {
-  printf("Initial loading finished\n");
-  printf("opening pipes\n");
-  a2lFD = open(PIPE_A2L, O_RDWR);
-  l2aFD = open(PIPE_L2A, O_RDWR);
+  printf("Initial library loading finished\n");
+}
+
+static __attribute__((destructor)) void shutdown() {
+  printf("audit library shutdown\n");
+  pthread_mutex_lock(mutex);
+  close(a2lFD); a2lFD = -1;
+  close(l2aFD); l2aFD = -1;
+  pthread_mutex_unlock(mutex);
 }
 
 extern used char * la_objsearch(const char * name, ignored uintptr_t * cookie, unsigned flag) {
-  if (flag == LA_SER_ORIG) printf("rtld is searching for symbol in library %s\n", name);
+  printf("rtld is searching for symbol in library %s\n", name);
+  pthread_mutex_lock(mutex);
   if (l2aFD > -1) {
-    write(l2aFD, name, strlen(name));
-    bool auditResult = false;
+    write(l2aFD, name, strlen(name)+1);
+    char auditResult = 0;
 
-    read(a2lFD, &auditResult, sizeof(bool));
-    if (auditResult) printf("loading of %s accepted\n", name);
+    ssize_t size = read(a2lFD, &auditResult, sizeof(char));
+    if(size == -1) {
+      perror("Encountered an error retrieving the audit result");
+      close(l2aFD);
+      char buf = 0;
+      fcntl(a2lFD, F_SETFL, O_RDONLY|O_NONBLOCK);
+      read(a2lFD, &buf, sizeof(char));
+      close(a2lFD);
+      exit(1);
+    }
+    if (auditResult) {
+      printf("loading of %s accepted\n", name);
+      pthread_mutex_unlock(mutex);
+      return (char *) name;
+    } else {
+      printf("loading of %s denied: %d\n", name, auditResult);
+      pthread_mutex_unlock(mutex);
+      shutdown();
+      return NULL;
+    }
   }
   return (char *) name;
 }
 
-extern used void la_activity(uintptr_t * cookie, unsigned flag) {
-  if (flag == LA_ACT_ADD) printf("adding element to link-map\n");
-}
-
-extern used unsigned la_objopen(struct link_map * map, Lmid_t lmid, uintptr_t * cookie) {
-  printf("new object was loaded\n");
-  return LA_FLG_BINDTO | LA_FLG_BINDFROM;
-}
-
-extern used uintptr_t la_symbind32(Elf32_Sym * symbol, unsigned index, uintptr_t * refcook, uintptr_t * defcook,
-                                   unsigned * flags, const char * symbolName) {
-  printf("binding symbol %s\n", symbolName);
-  return symbol->st_value;
-}
-
-extern used uintptr_t la_symbind64(Elf64_Sym * symbol, unsigned index, uintptr_t * refcook, uintptr_t * defcook,
-                                   unsigned * flags, const char * symbolName) {
-  printf("binding symbol %s\n", symbolName);
-  return symbol->st_value;
-}
-
-extern used void la_pltenter() {
-  printf("pltenter");
-}
