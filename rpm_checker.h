@@ -1,4 +1,5 @@
 #pragma once
 
-void readConfig();
-void indexRPMDB();
+#include <stdbool.h>
+
+char audit(char const * libraryFile);

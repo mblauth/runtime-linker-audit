@@ -3,7 +3,6 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <errno.h>
 #include <memory.h>
 #include <stdlib.h>
@@ -32,7 +31,6 @@ int openPipe(char const * name, int mode) {
 }
 
 int main(int argc, char ** args) {
-//  indexRPMDB();
 
   if (argc < 2) {
     fprintf(stderr, "no command provided\n");
@@ -64,7 +62,7 @@ int main(int argc, char ** args) {
   char rcvbuf[1024];
   while (read(l2a, &rcvbuf, 1024) != 0) {
     printf("audit-request for library %s\n", rcvbuf);
-    char auditResult = 1;
+    char auditResult = audit(rcvbuf);
     write(a2l, &auditResult, sizeof(char));
   }
 

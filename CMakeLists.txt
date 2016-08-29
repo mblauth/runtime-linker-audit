@@ -13,7 +13,7 @@ set(TEST_FILES test.c)
 set(TESTLIB_FILES testlib.c)
 
 add_executable(auditor auditor.c rpm_checker.c)
-target_link_libraries(auditor rpm)
+target_link_libraries(auditor rpm hawkey)
 
 add_library(testlib SHARED ${TESTLIB_FILES})
 add_executable(runtime-license-audit-test ${TEST_FILES})

@@ -4,7 +4,10 @@
 
 int main() {
   printf("Launching test\n");
-  void * handle = dlopen("./libtestlib.so", RTLD_LAZY);
+  void * handle = dlopen("librpm.so", RTLD_NOW);
+  dlclose(handle);
+
+  handle = dlopen("./libtestlib.so", RTLD_LAZY);
   if (handle == NULL) {
     perror("could not load library\n");
     exit(1);

@@ -17,13 +17,11 @@ volatile int l2aFD = -1;
 pthread_mutex_t * mutex;
 
 static __attribute__((constructor)) void startup() {
-  pthread_mutex_init(mutex, NULL);
   printf("initializing audit library...");
-  pthread_mutex_lock(mutex);
   l2aFD = open(PIPE_L2A, O_WRONLY);
   fcntl(l2aFD, F_SETPIPE_SZ, 1024);
   a2lFD = open(PIPE_A2L, O_RDONLY);
-  pthread_mutex_unlock(mutex);
+  pthread_mutex_init(mutex, NULL);
   printf("done\n");
 }
 
@@ -45,11 +43,16 @@ static __attribute__((destructor)) void shutdown() {
 
 extern used char * la_objsearch(const char * name, ignored uintptr_t * cookie, unsigned flag) {
   printf("rtld is searching for symbol in library %s\n", name);
+  if(strcmp("libdl.so.2", name) == 0) return (char *) name;
+  if(strcmp("/lib64/libdl.so.2", name) == 0) return (char *) name;
+  if(strcmp("libc.so.6", name) == 0) return (char *) name;
+  if(strcmp("/lib64/libc.so.6", name) == 0) return (char *) name;
   pthread_mutex_lock(mutex);
   if (l2aFD > -1) {
     write(l2aFD, name, strlen(name)+1);
     char auditResult = 0;
 
+    printf("retrieving from %d\n", a2lFD);
     ssize_t size = read(a2lFD, &auditResult, sizeof(char));
     if(size == -1) {
       perror("Encountered an error retrieving the audit result");
