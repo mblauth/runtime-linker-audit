@@ -11,7 +11,7 @@
 #include "rpm_checker.h"
 
 void launch(char const * command, char * const * args) {
-  char * environment[] = { "LD_AUDIT=./liblicense-audit.so", NULL };
+  char * environment[] = { "LD_AUDIT=./libaudit.so", NULL };
   execve(command, args, environment);
 }
 
@@ -23,9 +23,9 @@ void deleteFifosAndExit(int result) {
 int openPipe(char const * name, int mode) {
   if (mkfifo(name, 0666) == -1) {
     if (errno == EEXIST) {
-      perror("Another auditor instance might already be running");
+      //accept multiple instances for now perror("Another auditor instance might already be running");
     } else perror(strerror(errno));
-    exit(1);
+    //accept multiple instances for now exit(1);
   }
   return open(name, mode | O_CLOEXEC);
 }
@@ -69,7 +69,7 @@ int main(int argc, char ** args) {
   int result;
   printf("waiting for child process to exit\n");
   wait(&result);
-  printf("%s exited", args[1]);
+  printf("%s exited\n", args[1]);
   close(a2l);
   close(l2a);
   deleteFifosAndExit(0);

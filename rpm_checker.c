@@ -1,11 +1,10 @@
-#include <wchar.h>
+#include <memory.h>
 #include <stdio.h>
 
 #include <hawkey/package.h>
 #include <hawkey/packagelist.h>
 #include <hawkey/query.h>
 #include <hawkey/sack.h>
-#include <memory.h>
 
 #include "rpm_checker.h"
 
@@ -29,15 +28,18 @@ char audit(char const * libraryFile) {
   hy_query_filter(query, HY_PKG_FILE, HY_GLOB, queryString);
   printf("running query for %s\n", queryString);
   HyPackageList packageList = hy_query_run(query);
+
   printf("found %d packages\n", hy_packagelist_count(packageList));
   if (0 == hy_packagelist_count(packageList)) {
     printf("no package contained file\n");
     return 0;
   }
   HyPackage package = hy_packagelist_get(packageList, 0);
+
   printf("found package: %s\n", hy_package_get_name(package));
   printf("license is %s\n", hy_package_get_license(package));
   hy_packagelist_free(packageList);
   hy_query_free(query);
+
   return 1;
 }

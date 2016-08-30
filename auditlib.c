@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include <memory.h>
 #include <unistd.h>
-#include <stdbool.h>
 #include <pthread.h>
 #include <stdlib.h>
 
@@ -16,11 +15,16 @@ volatile int a2lFD = -1;
 volatile int l2aFD = -1;
 pthread_mutex_t * mutex;
 
+void bailout();
+
 static __attribute__((constructor)) void startup() {
-  printf("initializing audit library...");
+  printf("initializing audit library\n");
   l2aFD = open(PIPE_L2A, O_WRONLY);
+  printf("pipe to auditor is %d\n", l2aFD);
   fcntl(l2aFD, F_SETPIPE_SZ, 1024);
+  usleep(100000);
   a2lFD = open(PIPE_A2L, O_RDONLY);
+  printf("pipe from auditor is %d\n", a2lFD);
   pthread_mutex_init(mutex, NULL);
   printf("done\n");
 }
@@ -43,12 +47,16 @@ static __attribute__((destructor)) void shutdown() {
 
 extern used char * la_objsearch(const char * name, ignored uintptr_t * cookie, unsigned flag) {
   printf("rtld is searching for symbol in library %s\n", name);
+
+  // hardcoded accepted libraries
   if(strcmp("libdl.so.2", name) == 0) return (char *) name;
   if(strcmp("/lib64/libdl.so.2", name) == 0) return (char *) name;
   if(strcmp("libc.so.6", name) == 0) return (char *) name;
   if(strcmp("/lib64/libc.so.6", name) == 0) return (char *) name;
+
+
   pthread_mutex_lock(mutex);
-  if (l2aFD > -1) {
+  if (l2aFD > -1 && a2lFD > -1) {
     write(l2aFD, name, strlen(name)+1);
     char auditResult = 0;
 
@@ -56,12 +64,7 @@ extern used char * la_objsearch(const char * name, ignored uintptr_t * cookie, u
     ssize_t size = read(a2lFD, &auditResult, sizeof(char));
     if(size == -1) {
       perror("Encountered an error retrieving the audit result");
-      close(l2aFD);
-      char buf = 0;
-      fcntl(a2lFD, F_SETFL, O_RDONLY|O_NONBLOCK);
-      read(a2lFD, &buf, sizeof(char));
-      close(a2lFD);
-      exit(1);
+      bailout();
     }
     if (auditResult) {
       printf("loading of %s accepted\n", name);
@@ -73,7 +76,18 @@ extern used char * la_objsearch(const char * name, ignored uintptr_t * cookie, u
       shutdown();
       return NULL;
     }
+  } else {
+    printf("lost connection to auditor");
+    bailout();
   }
   return (char *) name;
 }
 
+void bailout() {
+  close(l2aFD);
+  char buf = 0;
+  fcntl(a2lFD, F_SETFL, O_RDONLY|O_NONBLOCK);
+  read(a2lFD, &buf, sizeof(char));
+  close(a2lFD);
+  exit(1);
+}

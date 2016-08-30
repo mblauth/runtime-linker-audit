@@ -3,7 +3,7 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/license_audit.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/auditlib.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/testlib.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/rpm_checker.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/rpm_checker.c" isTestSource="false" />
