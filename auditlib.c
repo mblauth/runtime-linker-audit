@@ -20,11 +20,17 @@ void bailout();
 static __attribute__((constructor)) void startup() {
   printf("initializing audit library\n");
   l2aFD = open(PIPE_L2A, O_WRONLY);
-  printf("pipe to auditor is %d\n", l2aFD);
+  if (l2aFD == -1) {
+    perror("could not open pipe from library to auditor");
+    exit(1);
+  }
   fcntl(l2aFD, F_SETPIPE_SZ, 1024);
   usleep(100000);
   a2lFD = open(PIPE_A2L, O_RDONLY);
-  printf("pipe from auditor is %d\n", a2lFD);
+  if (a2lFD == -1) {
+    perror("could open pipe from auditor to library");
+    exit(1);
+  }
   pthread_mutex_init(mutex, NULL);
   printf("done\n");
 }

@@ -23,9 +23,9 @@ void deleteFifosAndExit(int result) {
 int openPipe(char const * name, int mode) {
   if (mkfifo(name, 0666) == -1) {
     if (errno == EEXIST) {
-      //accept multiple instances for now perror("Another auditor instance might already be running");
+      //accept multiple instances for now // perror("Another auditor instance might already be running");
     } else perror(strerror(errno));
-    //accept multiple instances for now exit(1);
+    //accept multiple instances for now // exit(1);
   }
   return open(name, mode | O_CLOEXEC);
 }
@@ -49,7 +49,6 @@ int main(int argc, char ** args) {
     default:
       printf("child pid is %d\n", pid);
   }
-
 
   int l2a = openPipe(PIPE_L2A, O_RDONLY);
   int a2l = openPipe(PIPE_A2L, O_WRONLY);
