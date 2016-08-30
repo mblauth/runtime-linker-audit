@@ -10,6 +10,10 @@
 #include "pipes.h"
 #include "rpm_checker.h"
 
+void checkArgs(int);
+void launchChild(char **args);
+void waitAndExit(int a2l, int l2a);
+
 void launch(char const * command, char * const * args) {
   char * environment[] = { "LD_AUDIT=./libaudit.so", NULL };
   execve(command, args, environment);
@@ -31,24 +35,8 @@ int openPipe(char const * name, int mode) {
 }
 
 int main(int argc, char ** args) {
-
-  if (argc < 2) {
-    fprintf(stderr, "no command provided\n");
-    deleteFifosAndExit(4);
-  }
-
-  printf("launching %s\n", args[1]);
-  pid_t pid = fork();
-  switch (pid) {
-    case 0:
-      launch(args[1], &args[2]);
-      break;
-    case -1:
-      perror("fork failed");
-      deleteFifosAndExit(2);
-    default:
-      printf("child pid is %d\n", pid);
-  }
+  checkArgs(argc);
+  launchChild(args);
 
   int l2a = openPipe(PIPE_L2A, O_RDONLY);
   int a2l = openPipe(PIPE_A2L, O_WRONLY);
@@ -65,11 +53,37 @@ int main(int argc, char ** args) {
     write(a2l, &auditResult, sizeof(char));
   }
 
+  waitAndExit(a2l, l2a);
+}
+
+void waitAndExit(int a2l, int l2a) {
   int result;
   printf("waiting for child process to exit\n");
   wait(&result);
-  printf("%s exited\n", args[1]);
+  printf("child exited\n");
   close(a2l);
   close(l2a);
   deleteFifosAndExit(0);
+}
+
+void launchChild(char **args) {
+  printf("launching %s\n", args[1]);
+  pid_t pid = fork();
+  switch (pid) {
+    case 0:
+      launch(args[1], &args[2]);
+      break;
+    case -1:
+      perror("fork failed");
+      deleteFifosAndExit(2);
+    default:
+      printf("child pid is %d\n", pid);
+  }
+}
+
+void checkArgs(int argc) {
+  if (argc < 2) {
+    fprintf(stderr, "no command provided\n");
+    deleteFifosAndExit(4);
+  }
 }
