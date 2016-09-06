@@ -4,6 +4,7 @@
 
 int main() {
   printf("Launching test\n");
+
   void * handle = dlopen("librpm.so", RTLD_NOW);
   dlclose(handle);
 

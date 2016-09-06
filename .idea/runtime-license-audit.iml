@@ -2,13 +2,12 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/test.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testlib.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/auditor.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/rpm_checker.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/auditlib.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/auditlib.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/testlib.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/rpm_checker.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/rpm_checker.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/auditor.c" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
